@@ -1,0 +1,1 @@
+Error extracting text: Failed to load document (PDFium: Data format error).

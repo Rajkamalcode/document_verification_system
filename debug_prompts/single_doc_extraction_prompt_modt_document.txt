@@ -1,0 +1,58 @@
+You are a Data Extractor AI. Task: Extract info from 'modt_document.pdf' provided below.
+PRINCIPLES for 'modt_document.pdf':
+1. EXTRACT AS-IS.
+2. SOURCE FROM THIS DOCUMENT ONLY.
+Document Content for 'modt_document.pdf':
+--- Start Content: modt_document.pdf ---
+## Text Content (English):
+MEMORANDUM OF DEPOSIT OF TITLE DEEDS 
+Date: 15/06/2023 
+BORROWER DETAILS 
+Name: John Doe 
+Application No: APP123456 
+Address: 123 Main Street, Mumbai, Maharashtra 
+LOAN DETAILS 
+Loan Amount: Rs. 50,00,000 
+Interest Rate: 8.5% per annum 
+Tenure: 240 months 
+PROPERTY DETAILS 
+Property Address: Flat No. 101, Building A, Green Valley, Mumbai 
+Property Type: Residential Apartment 
+Area: 1200 sq. ft. 
+THIS MEMORANDUM OF DEPOSIT OF TITLE DEEDS is made on the date mentioned above 
+between the Borrower and the Lender. WHEREAS the Borrower has requested the Lender to grant a 
+loan facility and the Lender has agreed to grant such facility on the terms and conditions contained in 
+the Loan Agreement. NOW THIS DEED WITNESSETH that in consideration of the Lender granting the 
+loan facility to the Borrower, the Borrower hereby deposits with the Lender the title deeds relating to the 
+Property as security for the due repayment of the loan amount together with interest, costs, charges 
+and expenses. 
+SIGNED AND DELIVERED 
+Signature of Borrower 
+Signature of Lender 
+
+
+## Extracted Tables (Plain Text):
+[No relevant tables provided]
+--- End Content: modt_document.pdf ---
+
+Instructions for Extraction from 'modt_document.pdf' (above ONLY):
+For EACH field, find info WITHIN 'modt_document.pdf' and extract LITERALLY. If not found, use "Not Found".
+Fields to extract: name, application_number, date, property_details
+
+Output: Single JSON object.
+```json
+{
+    "name": "LITERAL text from 'modt_document.pdf' OR Not Found",
+    "application_number": "LITERAL text from 'modt_document.pdf' OR Not Found",
+    "date": "LITERAL text from 'modt_document.pdf' OR Not Found",
+    "property_details": "LITERAL text from 'modt_document.pdf' OR Not Found"
+}
+```
+Detailed Extraction Logic for 'modt_document.pdf':
+- Name: Look for "Name:", "Borrower:", "Borrower's Name:" patterns
+- Application Number: Look for "Application No:", "App #:", "Application Number:" patterns
+- Date: Look for "Date:", "Dated:", "Date of Agreement:" patterns
+- Property Details: Extract from "PROPERTY DETAILS" section, including address, type, and area
+- Loan Amount: Look for "Loan Amount:", "Facility Amount:" patterns
+
+Output MUST be a single, well-formed JSON object for 'modt_document.pdf'.

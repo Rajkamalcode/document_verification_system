@@ -1,0 +1,33 @@
+{
+  "pdf_path": "D:/table ocr/doc/document_verification_system/document_types/sanction_letter.py",
+  "ocr_engine": "doctr",
+  "extracted_fields": {},
+  "comparison": {
+    "loan_amount": {
+      "expected": "500000",
+      "extracted": null,
+      "similarity": 0,
+      "match": false
+    },
+    "applicant_name": {
+      "expected": "John Doe",
+      "extracted": null,
+      "similarity": 0,
+      "match": false
+    },
+    "sanction_date": {
+      "expected": "01/01/2023",
+      "extracted": null,
+      "similarity": 0,
+      "match": false
+    },
+    "interest_rate": {
+      "expected": "8.5%",
+      "extracted": null,
+      "similarity": 0,
+      "match": false
+    }
+  },
+  "match_count": 0,
+  "total_fields": 4
+}

@@ -1,0 +1,25 @@
+KNOW YOUR CUSTOMER (KYC) FORM 
+PERSONAL DETAILS 
+Name: Jane Smith 
+Date of Birth: 10/05/1985 
+Gender: Female 
+Nationality: Indian 
+CONTACT DETAILS 
+Address: 123 Main St, Bangalore, Karnataka 
+Mobile: +91 9876543210 
+Email: anesmin@example.com 
+DENTIFICATION DETAILS 
+PAN: ABCDE1234F 
+Aadhaar: 1234 5678 9012 
+Passport Number: Z1234567 
+BANK ACCOUNT DETAILS 
+Bank Name: State Bank of India 
+Account Number: 12345678901 
+IFSC Code: SBIN0001234 
+Account Type: Savings 
+DECLARATION 
+I hereby declare that the information provided above is true and correct to the best of my knowledge. I 
+understand that any false statement may result in rejection of my application or termination of services. 
+Date: 15/06/2023 
+Signature of Applicant 
+

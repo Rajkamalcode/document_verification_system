@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Verification System</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <nav class="navbar navbar-dark bg-dark">
+                <div class="container-fluid">
+                    <span class="navbar-brand mb-0 h1">Document Verification System</span>
+                </div>
+            </nav>
+        </div>
+
+        <div class="row mt-3">
+            <div class="col-md-3">
+                <!-- Document Upload and Configuration Panel -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Document Configuration</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="documentForm">
+                            <div class="mb-3">
+                                <label for="documentPayload" class="form-label">Document Payload (JSON)</label>
+                                <textarea class="form-control" id="documentPayload" rows="10" placeholder='[
+  {
+    "type": "MODT",
+    "location": "modt_example.pdf",
+    "fields": {
+      "name": "John Doe",
+      "application_number": "APP123456"
+    }
+  }
+]'></textarea>
+                            </div>
+                            <button type="button" id="processBtn" class="btn btn-primary">Process Documents</button>
+                            <button type="button" id="loadSampleBtn" class="btn btn-secondary">Load Sample</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Metadata Panel (appears when document is selected) -->
+                <div class="card mt-3" id="metadataPanel" style="display: none;">
+                    <div class="card-header">
+                        <h5>Document Metadata</h5>
+                    </div>
+                    <div class="card-body" id="metadataContent">
+                        <!-- Metadata will be populated here -->
+                    </div>
+                </div>
+                
+                <!-- OCR Text Panel (appears when document is selected) -->
+                <div class="card mt-3" id="ocrTextPanel" style="display: none;">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5>Extracted Text</h5>
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-outline-primary active" id="doctrTextBtn">DocTR</button>
+                            <button type="button" class="btn btn-outline-primary" id="pytesseractTextBtn">Pytesseract</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="doctrTextContent" class="ocr-text-content">
+                            <p class="text-muted">No DocTR text available</p>
+                        </div>
+                        <div id="pytesseractTextContent" class="ocr-text-content" style="display: none;">
+                            <p class="text-muted">No Pytesseract text available</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <!-- Results Panel -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Verification Results</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="resultsContainer">
+                            <div class="text-center text-muted">
+                                <p>No documents processed yet</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <!-- Document Preview Panel -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Document Preview</h5>
+                    </div>
+                    <div class="card-body text-center" id="previewContainer">
+                        <p class="text-muted">Select a document to preview</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PDF.js for PDF rendering -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script>
+        // Set PDF.js worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+    </script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Document Processing</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+        .card {
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+        .field-row {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #f8f9fa;
+        }
+        .results-container {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .table-responsive {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .comparison-table {
+            font-size: 0.85rem;
+        }
+        .comparison-table th {
+            position: sticky;
+            top: 0;
+            background-color: #f8f9fa;
+            z-index: 10;
+        }
+        .pdf-preview {
+            width: 100%;
+            height: 500px;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+        }
+        .match-icon.success {
+            color: #198754;
+        }
+        .match-icon.failure {
+            color: #dc3545;
+        }
+        #addFieldBtn {
+            margin-bottom: 15px;
+        }
+        .preset-fields {
+            margin-bottom: 15px;
+        }
+        .preset-btn {
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1 class="mb-3">Test Document Processing</h1>
+                <a href="/" class="btn btn-outline-secondary mb-3">
+                    <i class="fas fa-arrow-left"></i> Back to Main Page
+                </a>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-5">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Upload Document</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="documentForm" enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <label for="documentFile" class="form-label">Document File (PDF)</label>
+                                <input class="form-control" type="file" id="documentFile" name="document" accept=".pdf">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="documentType" class="form-label">Document Type</label>
+                                <select class="form-select" id="documentType" name="document_type" required>
+                                    <option value="">Select document type</option>
+                                    <option value="MODT">MODT</option>
+                                    <option value="REPAYMENT_KIT">REPAYMENT_KIT</option>
+                                    <option value="KYC">KYC</option>
+                                    <option value="SANCTION_LETTER">SANCTION_LETTER</option>
+                                    <option value="LEGAL_REPORT">LEGAL_REPORT</option>
+                                    <option value="VETTING_REPORT">VETTING_REPORT</option>
+                                    <option value="AGREEMENT">AGREEMENT</option>
+                                    <option value="ANNEXURE">ANNEXURE</option>
+                                </select>
+                            </div>
+                            <!-- Add this right after the document type selection -->
+                            <div class="mb-3">
+                                <label for="extractionMethod" class="form-label">Extraction Method</label>
+                                <select class="form-select" id="extractionMethod" name="extraction_method">
+                                    <option value="regex">Regex Only</option>
+                                    <option value="llm">LLM Only</option>
+                                    <option value="both" selected>Both (Hybrid)</option>
+                                </select>
+                                <div class="form-text">Choose how to extract information from the document.</div>
+                            </div>
+
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Expected Fields</label>
+                                <div class="preset-fields">
+                                    <button type="button" class="btn btn-sm btn-outline-primary preset-btn" data-preset="SANCTION_LETTER">
+                                        Sanction Letter Fields
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-primary preset-btn" data-preset="MODT">
+                                        MODT Fields
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-primary preset-btn" data-preset="KYC">
+                                        KYC Fields
+                                    </button>
+                                </div>
+                                
+                                <div id="fieldsContainer">
+                                    <!-- Fields will be added here -->
+                                </div>
+                                
+                                <button type="button" id="addFieldBtn" class="btn btn-sm btn-outline-secondary">
+                                    <i class="fas fa-plus"></i> Add Field
+                                </button>
+                            </div>
+                            
+                            <button type="submit" id="processBtn" class="btn btn-primary">
+                                <i class="fas fa-cogs"></i> Process Document
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5>Document Preview</h5>
+                    </div>
+                    <div class="card-body" id="previewContainer">
+                        <p class="text-muted text-center">Upload a document to preview</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-7">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Processing Results</h5>
+                    </div>
+                    <div class="card-body results-container">
+                        <div id="resultsContainer">
+                            <p class="text-muted text-center">No document processed yet</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PDF.js for PDF rendering -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script>
+        // Set PDF.js worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+    </script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const documentForm = document.getElementById('documentForm');
+            const documentFile = document.getElementById('documentFile');
+            const documentType = document.getElementById('documentType');
+            const addFieldBtn = document.getElementById('addFieldBtn');
+            const fieldsContainer = document.getElementById('fieldsContainer');
+            const previewContainer = document.getElementById('previewContainer');
+            const resultsContainer = document.getElementById('resultsContainer');
+            
+            // Field presets for different document types
+            const fieldPresets = {
+                'SANCTION_LETTER': [
+                    { name: 'loan_amount', value: '500000' },
+                    { name: 'applicant_name', value: 'John Doe' },
+                    { name: 'sanction_date', value: '01/01/2023' },
+                    { name: 'interest_rate', value: '8.5%' },
+                    { name: 'tenure', value: '60' },
+                    { name: 'loan_purpose', value: 'Home Renovation' }
+                ],
+                'MODT': [
+                    { name: 'name', value: 'John Doe' },
+                    { name: 'application_number', value: 'APP123456' },
+                    { name: 'date', value: '15/06/2023' },
+                    { name: 'property_details', value: 'Flat No. 101, Building A, Green Valley, Mumbai' },
+                    { name: 'loan_amount', value: 'Rs. 50,00,000' } // Changed from 'value' to 'loan_amount'
+                ],
+                'KYC': [
+                    { name: 'name', value: 'Jane Smith' },
+                    { name: 'address', value: '123 Main St, Bangalore, Karnataka' },
+                    { name: 'id_number', value: 'ABCDE1234F' },
+                    { name: 'date_of_birth', value: '10/05/1985' }
+                ]
+            };
+            
+            // Add field row
+            function addFieldRow(name = '', value = '') {
+                const fieldRow = document.createElement('div');
+                fieldRow.className = 'field-row';
+                fieldRow.innerHTML = `
+                    <div class="row">
+                        <div class="col-md-5 mb-2">
+                            <input type="text" class="form-control form-control-sm" name="field_name" 
+                                placeholder="Field name" value="${name}" required>
+                        </div>
+                        <div class="col-md-5 mb-2">
+                            <input type="text" class="form-control form-control-sm" name="field_value" 
+                                placeholder="Expected value" value="${value}">
+                        </div>
+                        <div class="col-md-2 mb-2">
+                            <button type="button" class="btn btn-sm btn-outline-danger remove-field">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                // Add remove button functionality
+                fieldRow.querySelector('.remove-field').addEventListener('click', function() {
+                    fieldRow.remove();
+                });
+                
+                fieldsContainer.appendChild(fieldRow);
+            }
+            
+            // Add field button click handler
+            addFieldBtn.addEventListener('click', function() {
+                addFieldRow();
+            });
+            
+            // Preset buttons click handler
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const preset = this.getAttribute('data-preset');
+                    if (fieldPresets[preset]) {
+                        // Clear existing fields
+                        fieldsContainer.innerHTML = '';
+                        
+                        // Set document type
+                        documentType.value = preset;
+                        
+                        // Add preset fields
+                        fieldPresets[preset].forEach(field => {
+                            addFieldRow(field.name, field.value);
+                        });
+                    }
+                });
+            });
+            
+            // Preview document when selected
+            documentFile.addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    const file = this.files[0];
+                    
+                    if (file.type === 'application/pdf') {
+                        // Create object URL for the file
+                        const objectUrl = URL.createObjectURL(file);
+                        
+                        // Create PDF viewer
+                        previewContainer.innerHTML = `
+                            <iframe src="${objectUrl}" class="pdf-preview"></iframe>
+                        `;
+                    } else {
+                        previewContainer.innerHTML = `
+                            <div class="alert alert-warning">
+                                Preview only available for PDF files
+                            </div>
+                        `;
+                    }
+                }
+            });
+                        
+            // Update the form submission handler in test_document.html
+            documentForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Check if file is selected
+                if (!documentFile.files || !documentFile.files[0]) {
+                    alert('Please select a document file');
+                    return;
+                }
+                
+                // Check if document type is selected
+                if (!documentType.value) {
+                    alert('Please select a document type');
+                    return;
+                }
+                
+                // Collect field data
+                const fieldRows = fieldsContainer.querySelectorAll('.field-row');
+                const formData = new FormData(documentForm);
+                
+                // Add extraction method
+                const extractionMethod = document.getElementById('extractionMethod').value;
+                formData.append('extraction_method', extractionMethod);
+                
+                fieldRows.forEach((row, index) => {
+                    const nameInput = row.querySelector('input[name="field_name"]');
+                    const valueInput = row.querySelector('input[name="field_value"]');
+                    
+                    if (nameInput.value) {
+                        // Map 'value' to 'loan_amount' for MODT documents
+                        let fieldName = nameInput.value;
+                        if (documentType.value === 'MODT' && fieldName === 'value') {
+                            fieldName = 'loan_amount';
+                        }
+                        formData.append(`field_${fieldName}`, valueInput.value || '');
+                    }
+                });
+                
+                // Show loading state
+                resultsContainer.innerHTML = `
+                    <div class="text-center">
+                        <div class="spinner-border" role="status"></div>
+                        <p class="mt-2">Processing document with ${extractionMethod} extraction method...</p>
+                    </div>
+                `;
+                
+                // Send request to API
+                fetch('/api/test-document', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("API Response:", data);  // Log the response for debugging
+                    
+                    // Fix any 'value' fields in the response for MODT documents
+                    if (data.document_type === 'MODT') {
+                        // If 'value' exists in expected_fields, rename it to 'loan_amount'
+                        if (data.expected_fields && data.expected_fields.value) {
+                            data.expected_fields.loan_amount = data.expected_fields.value;
+                            delete data.expected_fields.value;
+                        }
+                        
+                        // If 'value' exists in comparison, rename it to 'loan_amount'
+                        if (data.comparison && data.comparison.value) {
+                            data.comparison.loan_amount = data.comparison.value;
+                            delete data.comparison.value;
+                        }
+                    }
+                    
+                    displayResults(data);
+                })
+                .catch(error => {
+                    resultsContainer.innerHTML = `
+                        <div class="alert alert-danger">
+                            <h5>Error</h5>
+                            <p>${error.message}</p>
+                        </div>
+                    `;
+                });
+            });
+
+                        
+            // Display processing results
+            function displayResults(result) {
+                if (!result) {
+                    resultsContainer.innerHTML = '<div class="alert alert-info">No results returned</div>';
+                    return;
+                }
+                
+                if (result.error) {
+                    resultsContainer.innerHTML = `
+                        <div class="alert alert-danger">
+                            <h5>Error</h5>
+                            <p>${result.error}</p>
+                            ${result.details ? `<pre class="mt-3 small">${result.details}</pre>` : ''}
+                        </div>
+                    `;
+                    return;
+                }
+                
+                let html = `
+                    <div class="alert alert-success">
+                        <h5>Document Processed Successfully</h5>
+                        <p><strong>Document Type:</strong> ${result.document_type}</p>
+                        <p><strong>OCR Engine:</strong> ${result.ocr_engine}</p>
+                        <p><strong>Extraction Method:</strong> ${result.extraction_method}</p>
+                        <p><strong>Processing Time:</strong> ${result.processing_time.toFixed(2)} seconds</p>
+                    </div>
+                    <div class="alert alert-info">
+                        <h5>Extraction Method: ${result.extraction_method}</h5>
+                        <p>The fields below were extracted using the ${result.extraction_method} method.</p>
+                    </div>
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h5>Extracted Fields</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Field</th>
+                                            <th>Extracted Value</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                `;
+                            
+                // Add extracted fields
+                if (Object.keys(result.extracted_fields).length > 0) {
+                    for (const [fieldName, fieldValue] of Object.entries(result.extracted_fields)) {
+                        html += `
+                            <tr>
+                                <td><strong>${fieldName}</strong></td>
+                                <td>${fieldValue || '<em>Not found</em>'}</td>
+                            </tr>
+                        `;
+                    }
+                } else {
+                    html += `
+                        <tr>
+                            <td colspan="2" class="text-center">No fields extracted</td>
+                        </tr>
+                    `;
+                }
+                
+                html += `
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // Add comparison results if available
+                if (Object.keys(result.comparison).length > 0) {
+                    html += `
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <h5>Field Comparison</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-hover comparison-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Field</th>
+                                                <th>Expected</th>
+                                                <th>Extracted</th>
+                                                <th>Match</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                    `;
+                    
+                    // Calculate overall match percentage
+                    let matchCount = 0;
+                    let totalFields = Object.keys(result.comparison).length;
+                    
+                    for (const [fieldName, comparison] of Object.entries(result.comparison)) {
+                        const matchClass = comparison.match ? 'table-success' : 'table-danger';
+                        const iconClass = comparison.match ? 'success' : 'failure';
+                        const iconType = comparison.match ? 'check-circle' : 'times-circle';
+                        const similarityPercent = (comparison.similarity * 100).toFixed(1);
+                        
+                        if (comparison.match) {
+                            matchCount++;
+                        }
+                        
+                        html += `
+                            <tr class="${matchClass}">
+                                <td><strong>${fieldName}</strong></td>
+                                <td>${comparison.expected || 'N/A'}</td>
+                                <td>${comparison.extracted || 'Not found'}</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-${iconType} match-icon ${iconClass} me-2"></i>
+                                        <div class="progress flex-grow-1" style="height: 8px;">
+                                            <div class="progress-bar" role="progressbar" 
+                                                style="width: ${similarityPercent}%; background-color: ${getColorForSimilarity(comparison.similarity)};" 
+                                                aria-valuenow="${similarityPercent}" aria-valuemin="0" aria-valuemax="100">
+                                            </div>
+                                        </div>
+                                        <span class="ms-2 badge ${comparison.match ? 'bg-success' : 'bg-danger'}">${similarityPercent}%</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                    }
+                    
+                    const overallMatchPercent = totalFields > 0 ? (matchCount / totalFields * 100).toFixed(1) : 0;
+                    
+                    html += `
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <div class="mt-3 d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>Overall Match:</strong> ${matchCount}/${totalFields} fields
+                                    </div>
+                                    <div class="progress" style="width: 60%;">
+                                        <div class="progress-bar" role="progressbar" style="width: ${overallMatchPercent}%;" 
+                                            aria-valuenow="${overallMatchPercent}" aria-valuemin="0" aria-valuemax="100">
+                                            ${overallMatchPercent}%
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                // Add metadata
+                html += `
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h5>Document Metadata</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Property</th>
+                                            <th>Value</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                `;
+                
+                // Add metadata fields
+                if (result.metadata && Object.keys(result.metadata).length > 0) {
+                    for (const [key, value] of Object.entries(result.metadata)) {
+                        if (value) {
+                            html += `
+                                <tr>
+                                    <td><strong>${formatMetadataKey(key)}</strong></td>
+                                    <td>${value}</td>
+                                </tr>
+                            `;
+                        }
+                    }
+                } else {
+                    html += `
+                        <tr>
+                            <td colspan="2" class="text-center">No metadata available</td>
+                        </tr>
+                    `;
+                }
+                
+                html += `
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                resultsContainer.innerHTML = html;
+            }
+            
+            // Format metadata key for display
+            function formatMetadataKey(key) {
+                return key
+                    .replace(/([A-Z])/g, ' $1') // Add space before capital letters
+                    .replace(/_/g, ' ') // Replace underscores with spaces
+                    .replace(/^./, str => str.toUpperCase()); // Capitalize first letter
+            }
+            
+            // Get color based on similarity value
+            function getColorForSimilarity(similarity) {
+                // Red to green gradient based on similarity
+                if (similarity < 0.5) {
+                    // Red to yellow gradient for 0-0.5
+                    const g = Math.floor(similarity * 2 * 255);
+                    return `rgb(255, ${g}, 0)`;
+                } else {
+                    // Yellow to green gradient for 0.5-1
+                    const r = Math.floor((1 - (similarity - 0.5) * 2) * 255);
+                    return `rgb(${r}, 255, 0)`;
+                }
+            }
+            
+            // Add initial field row
+            addFieldRow();
+        });
+    </script>
+</body>
+</html>

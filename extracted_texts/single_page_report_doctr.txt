@@ -1,0 +1,54 @@
+Name: Rajkamal Application ID: APP174581804504026 Loan Type: Home Loan 2 
+KYC Verification Summary 
+Duplicate Found 
+We found a duplicate record in our system. 
+Applicant Information 
+Verification Summary 
+Name: 
+Rajkamal 
+Liveness Check: 
+Passed 
+Phone: 
+8825532992 
+Aadhaar Verification: Passed 
+Address: 
+21 Madurai samy 
+Face Comparison: 47.61% Match 
+madam 
+Duplicate Check: 
+Duplicate Found 
+Application ID: 
+APP174581804502402 
+Aadhaar Verification 
+Face Comparison 
+Masked Aadhaar 
+Aadhaar Face 
+Liveness Face 
+48% 
+Match 
+4711 
+4711 
+CGs Bsmo. dasi amLumemb 
+aes Bsm. dasi simLummb 
+Verification Result 
+Verified 
+Similarity Score: 47.61% 
+Liveness Check 
+Face Deduplication 
+V Completed 
+V Completed 
+Verification Status 
+Captured Location 
+DUPLICATE FOUND 
+Latitude: 
+13.0285568 
+Longitude: 
+80.2062336 
+Matching Records 
+UCIC ID 
+Name 
+Similarity 
+UCIC#00000006 
+Rajkamal 
+84.09% 
+

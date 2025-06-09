@@ -1,0 +1,416 @@
+/* General Styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+}
+
+.card {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.card-header {
+    background-color: #f1f3f5;
+    border-bottom: 1px solid #dee2e6;
+    padding: 12px 16px;
+}
+
+.card-body {
+    padding: 16px;
+}
+
+/* Document Card Styles */
+.document-card {
+    transition: all 0.3s ease;
+    border: 1px solid #dee2e6;
+}
+
+.document-card.active {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.document-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Comparison Table Styles */
+.comparison-table {
+    font-size: 0.85rem; /* Smaller font size */
+    width: 100%;
+    margin-bottom: 0; /* Remove bottom margin */
+}
+
+.comparison-table th {
+    font-weight: 600;
+    background-color: #f8f9fa;
+    position: sticky; /* Sticky header */
+    top: 0;
+    z-index: 10;
+}
+
+.comparison-table td {
+    vertical-align: middle;
+    padding: 0.5rem; /* Smaller padding */
+}
+
+/* Table container with fixed height and scrolling */
+.table-responsive {
+    max-height: 300px; /* Fixed height */
+    overflow-y: auto; /* Vertical scrolling */
+    margin-bottom: 1rem;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+}
+
+.progress {
+    height: 6px; /* Smaller progress bar */
+    margin: 0;
+    background-color: #e9ecef;
+}
+
+.match-icon {
+    font-size: 0.9rem; /* Smaller icon */
+    margin-right: 6px;
+}
+
+.match-icon.success {
+    color: #198754;
+}
+
+.match-icon.failure {
+    color: #dc3545;
+}
+
+/* Metadata Panel Styles */
+.metadata-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.metadata-item {
+    padding: 8px;
+    border-radius: 4px;
+    background-color: #f8f9fa;
+}
+
+.metadata-label {
+    font-size: 0.8rem;
+    color: #6c757d;
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.metadata-value {
+    font-size: 0.9rem;
+    word-break: break-word;
+}
+
+/* PDF Preview Styles */
+.pdf-preview-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.pdf-preview {
+    max-width: 100%;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    height: auto;
+}
+
+/* OCR Text Styles */
+.ocr-text-content {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.extracted-text {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.85rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin: 0;
+    padding: 8px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    border: 1px solid #dee2e6;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .card-body {
+        padding: 12px;
+    }
+    
+    .comparison-table {
+        font-size: 0.75rem; /* Even smaller on mobile */
+    }
+    
+    .table-responsive {
+        max-height: 250px; /* Smaller height on mobile */
+    }
+}
+
+/* Sidebar Styles */
+.sidebar {
+    position: sticky;
+    top: 20px;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+}
+
+/* PDF Viewer Enhancements */
+#pdfCanvas {
+    width: 100%;
+    height: auto;
+    min-height: 500px;
+    background-color: #f8f9fa;
+}
+
+/* Table Row Hover Effect */
+.comparison-table tbody tr:hover {
+    background-color: rgba(13, 110, 253, 0.05) !important;
+}
+
+/* Field Comparison Styles */
+.field-comparison {
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    border: 1px solid #dee2e6;
+    transition: all 0.2s ease;
+}
+
+.field-comparison:hover {
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.field-match {
+    background-color: rgba(25, 135, 84, 0.1);
+    border-color: rgba(25, 135, 84, 0.2);
+}
+
+.field-mismatch {
+    background-color: rgba(220, 53, 69, 0.1);
+    border-color: rgba(220, 53, 69, 0.2);
+}
+
+.similarity-bar {
+    height: 6px;
+    background-color: #e9ecef;
+    border-radius: 3px;
+    margin-top: 8px;
+    overflow: hidden;
+}
+
+.similarity-value {
+    height: 100%;
+    border-radius: 3px;
+}
+
+/* Button Styles */
+.btn-group-sm .btn {
+    font-size: 0.75rem;
+}
+
+/* Document Form */
+#documentPayload {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.85rem;
+}
+
+/* Enhanced PDF Viewer */
+.pdf-preview-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+#pdfCanvas {
+    width: 100%;
+    height: auto;
+    min-height: 500px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+}
+
+/* Page Navigation */
+#pageInfo {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #495057;
+    align-self: center;
+}
+
+/* Spinner */
+.spinner-border {
+    width: 1.5rem;
+    height: 1.5rem;
+    border-width: 0.2em;
+}
+
+/* Metadata Panel Enhancements */
+#metadataPanel {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.metadata-list {
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+/* OCR Text Panel Enhancements */
+#ocrTextPanel {
+    max-height: 400px;
+}
+
+.ocr-text-content {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+/* Results Container */
+#resultsContainer {
+    max-height: calc(100vh - 150px);
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Responsive Layout Adjustments */
+@media (min-width: 992px) {
+    .col-lg-3 {
+        position: sticky;
+        top: 20px;
+        height: calc(100vh - 100px);
+        overflow-y: auto;
+    }
+    
+    .col-lg-6 {
+        max-height: calc(100vh - 100px);
+        overflow-y: auto;
+    }
+}
+
+/* Table Layout */
+.comparison-table {
+    table-layout: auto;
+}
+
+.comparison-table th:nth-child(1) {
+    width: 15%; /* Smaller field name column */
+}
+
+.comparison-table th:nth-child(2),
+.comparison-table th:nth-child(3) {
+    width: 37.5%; /* Slightly larger content columns */
+}
+
+.comparison-table th:nth-child(4) {
+    width: 10%;
+}
+
+/* Truncate long text in table cells */
+.comparison-table td {
+    max-width: 0;
+
+}
+
+/* Show full text on hover */
+.comparison-table td:hover {
+    white-space: normal;
+    overflow: visible;
+    position: relative;
+    z-index: 1;
+    background-color: #f8f9fa;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Card Header Badge */
+.card-header .badge {
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+}
+
+/* Document Info Section */
+.document-info {
+    padding: 8px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    margin-bottom: 15px;
+}
+
+/* Overall Match Progress Bar */
+.progress {
+    height: 10px;
+    border-radius: 5px;
+}
+
+.progress-bar {
+    border-radius: 5px;
+}
+
+/* Card Footer */
+.card-footer {
+    background-color: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+    padding: 10px 16px;
+}
+
+/* Button Spacing */
+.card-footer .btn {
+    margin-right: 5px;
+}
+
+/* Active Tab Button */
+.btn-outline-primary.active {
+    background-color: #0d6efd;
+    color: white;
+}
+
+/* Compact match indicator in table */
+.comparison-table .match-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.comparison-table .progress {
+    flex-grow: 1;
+    margin: 0 4px;
+}
+
+.comparison-table .badge {
+    font-size: 0.7rem;
+    padding: 0.2em 0.4em;
+}

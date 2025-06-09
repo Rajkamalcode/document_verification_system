@@ -1,0 +1,27 @@
+LOAN REPAYMENT KIT 
+CUSTOMER DETAILS 
+Name: John Doe 
+Loan Account Number: LOAN123456 
+Address: 123 Main Street, Mumbai, Maharashtra 
+LOAN DETAILS 
+Loan Amount: Rs. 5,00,000 
+Interest Rate: 8.5% 
+Tenure: 60 months 
+EMI Amount: Rs. 10,250 
+EMI Due Date: 5th of every month 
+REPAYMENT METHODS 
+Method 
+Details 
+ECS/NACH 
+Automatic deduction from your bank account 
+Online Banking 
+Pay through your bank's net banking facility 
+Mobile App 
+Pay through our mobile application 
+Cheque 
+Submit post-dated cheques to our branch 
+IMPORTANT NOTES 
+1. Please ensure sufficient balance in your account on the EMI due date. 2. Late payment will attract 
+penal interest at 2% per month on the overdue amount. 3. Prepayment charges: 2% of the principal 
+amount prepaid. 4. For any queries, please contact our customer care at 1800-123-4567. 
+
