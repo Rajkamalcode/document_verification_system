@@ -116,7 +116,12 @@ def save_extracted_text(pdf_path, text, ocr_engine):
     try:
         filename = os.path.basename(pdf_path)
         base_name = os.path.splitext(filename)[0]
-        output_file = os.path.join(EXTRACTED_TEXT_DIR, f"{base_name}_{ocr_engine}.txt")
+        
+        # Check if this is a temporary file
+        if 'temp' in pdf_path:
+            output_file = os.path.join(EXTRACTED_TEXT_DIR, f"temp_{base_name}_{ocr_engine}.txt")
+        else:
+            output_file = os.path.join(EXTRACTED_TEXT_DIR, f"{base_name}_{ocr_engine}.txt")
         
         with open(output_file, 'w', encoding='utf-8') as f:
             f.write(text)
@@ -170,49 +175,15 @@ def process_document(document_path, document_type, expected_fields=None):
             module_name = f"document_types.{document_type.lower()}"
             doc_module = importlib.import_module(module_name)
             
-            # Determine extraction method from config
-            extraction_method = doc_type_config.get('extraction_method', config.DEFAULT_EXTRACTION_METHOD).lower()
-            logger.info(f"Using extraction method: {extraction_method} for {document_type}")
-            
-            # Extract fields based on the extraction method
-            extracted_fields = {}
-            
-            # If expected_fields is None, use the fields from config
-            if expected_fields is None:
-                expected_fields = {field: "" for field in doc_type_config.get('fields', [])}
-            
-            # Run extraction based on the method
-            if extraction_method == "regex":
-                # Regex-only mode
-                logger.info(f"Extracting fields using regex for {document_type}")
-                extracted_fields = doc_module.extract_fields(text)
-            elif extraction_method == "llm" and hasattr(doc_module, 'extract_fields_with_llm'):
-                # LLM-only mode
-                logger.info(f"Extracting fields using LLM for {document_type}")
-                extracted_fields = doc_module.extract_fields_with_llm(text, expected_fields)
-            elif extraction_method == "both" and hasattr(doc_module, 'extract_fields_with_llm'):
-                # Hybrid mode - run both and merge results
-                logger.info(f"Extracting fields using both regex and LLM for {document_type}")
-                regex_fields = doc_module.extract_fields(text)
-                llm_fields = doc_module.extract_fields_with_llm(text, expected_fields)
-                
-                # Merge results, prioritizing LLM for non-empty values
-                extracted_fields = regex_fields.copy()
-                for field, value in llm_fields.items():
-                    if value:  # Only update if LLM found a value
-                        extracted_fields[field] = value
-            else:
-                # Fallback to regex if LLM method is requested but not available
-                logger.info(f"Falling back to regex extraction for {document_type}")
-                extracted_fields = doc_module.extract_fields(text)
-            
-            logger.info(f"Successfully extracted fields for {document_type}")
+            # Extract fields using the module's extract_fields function
+            # Pass expected_fields to the extract_fields function
+            extracted_fields = doc_module.extract_fields(text, expected_fields)
+            logger.info(f"Successfully extracted fields using {module_name} module")
             
             return {
                 "document_path": document_path,
                 "document_type": document_type,
                 "ocr_engine": doc_type_config['ocr_engine'],
-                "extraction_method": extraction_method,
                 "processing_time": processing_time,
                 "metadata": metadata,
                 "extracted_text": text,
@@ -245,14 +216,42 @@ def process_document(document_path, document_type, expected_fields=None):
             "extracted_fields": {}
         }
 
+def normalize_field_name(field_name):
+    """Normalize field name for comparison (lowercase, remove spaces, underscores)"""
+    if not field_name:
+        return ""
+    return field_name.lower().replace(" ", "_").replace("-", "_")
+
 def compare_fields(expected_fields, extracted_fields):
     """Compare expected fields with extracted fields using semantic similarity or exact matching"""
     results = {}
     
+    # Normalize field names in extracted fields for easier matching
+    normalized_extracted = {}
+    for key, value in extracted_fields.items():
+        normalized_key = normalize_field_name(key)
+        normalized_extracted[normalized_key] = value
+    
     for field_name, expected_value in expected_fields.items():
-        if field_name in extracted_fields:
-            extracted_value = extracted_fields[field_name]
-            
+        normalized_field = normalize_field_name(field_name)
+        
+        # Try to find the field in extracted fields (with normalization)
+        extracted_value = None
+        matched_key = None
+        
+        # First try exact match with normalized name
+        if normalized_field in normalized_extracted:
+            extracted_value = normalized_extracted[normalized_field]
+            matched_key = normalized_field
+        else:
+            # Try to find a partial match
+            for ext_key, ext_value in normalized_extracted.items():
+                if normalized_field in ext_key or ext_key in normalized_field:
+                    extracted_value = ext_value
+                    matched_key = ext_key
+                    break
+        
+        if extracted_value:
             # Determine if this field needs exact matching
             # Check if the field is in the exact_match_fields list for this document type
             doc_type = None
@@ -292,7 +291,8 @@ def compare_fields(expected_fields, extracted_fields):
                 "extracted": extracted_value,
                 "similarity": similarity,
                 "match": similarity >= config.SIMILARITY_THRESHOLD if not use_exact_match else (similarity == 1.0),
-                "match_method": "exact" if use_exact_match else "semantic"
+                "match_method": "exact" if use_exact_match else "semantic",
+                "matched_field": matched_key  # Store the actual field name that was matched
             }
         else:
             results[field_name] = {
@@ -300,7 +300,8 @@ def compare_fields(expected_fields, extracted_fields):
                 "extracted": None,
                 "similarity": 0,
                 "match": False,
-                "match_method": "none"
+                "match_method": "none",
+                "matched_field": None
             }
     
     return results

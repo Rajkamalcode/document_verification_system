@@ -24,7 +24,7 @@
             background-color: #f8f9fa;
         }
         .results-container {
-            max-height: 600px;
+            max-height: 800px;
             overflow-y: auto;
         }
         .table-responsive {
@@ -62,10 +62,34 @@
             margin-right: 5px;
             margin-bottom: 5px;
         }
+        .extracted-text {
+            font-family: monospace;
+            white-space: pre-wrap;
+            font-size: 0.8rem;
+            max-height: 300px;
+            overflow-y: auto;
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .nav-tabs .nav-link {
+            font-size: 0.9rem;
+            padding: 0.5rem 1rem;
+        }
+        .debug-section {
+            margin-top: 20px;
+        }
+        .field-label {
+            font-weight: bold;
+            min-width: 150px;
+        }
+        .field-value {
+            word-break: break-word;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container-fluid">
         <div class="row mb-4">
             <div class="col-12">
                 <h1 class="mb-3">Test Document Processing</h1>
@@ -76,7 +100,7 @@
         </div>
 
         <div class="row">
-            <div class="col-md-5">
+            <div class="col-md-4">
                 <div class="card">
                     <div class="card-header">
                         <h5>Upload Document</h5>
@@ -102,18 +126,6 @@
                                     <option value="ANNEXURE">ANNEXURE</option>
                                 </select>
                             </div>
-                            <!-- Add this right after the document type selection -->
-                            <div class="mb-3">
-                                <label for="extractionMethod" class="form-label">Extraction Method</label>
-                                <select class="form-select" id="extractionMethod" name="extraction_method">
-                                    <option value="regex">Regex Only</option>
-                                    <option value="llm">LLM Only</option>
-                                    <option value="both" selected>Both (Hybrid)</option>
-                                </select>
-                                <div class="form-text">Choose how to extract information from the document.</div>
-                            </div>
-
-                            
                             <div class="mb-3">
                                 <label class="form-label">Expected Fields</label>
                                 <div class="preset-fields">
@@ -154,7 +166,7 @@
                 </div>
             </div>
             
-            <div class="col-md-7">
+            <div class="col-md-8">
                 <div class="card">
                     <div class="card-header">
                         <h5>Processing Results</h5>
@@ -162,6 +174,41 @@
                     <div class="card-body results-container">
                         <div id="resultsContainer">
                             <p class="text-muted text-center">No document processed yet</p>
+                        </div>
+                        
+                        <!-- Debug Section -->
+                        <div class="debug-section" id="debugSection" style="display: none;">
+                            <ul class="nav nav-tabs" id="debugTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="extracted-text-tab" data-bs-toggle="tab" 
+                                        data-bs-target="#extracted-text" type="button" role="tab" 
+                                        aria-controls="extracted-text" aria-selected="true">
+                                        Extracted Text
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="raw-response-tab" data-bs-toggle="tab" 
+                                        data-bs-target="#raw-response" type="button" role="tab" 
+                                        aria-controls="raw-response" aria-selected="false">
+                                        Raw Response
+                                    </button>
+                                </li>
+                            </ul>
+                            <div class="tab-content" id="debugTabsContent">
+                                <div class="tab-pane fade show active" id="extracted-text" role="tabpanel" 
+                                    aria-labelledby="extracted-text-tab">
+                                    <div class="extracted-text mt-3" id="extractedTextContent">
+                                        No extracted text available
+                                    </div>
+                                </div>
+                                <div class="tab-pane fade" id="raw-response" role="tabpanel" 
+                                    aria-labelledby="raw-response-tab">
+                                    <pre class="mt-3" id="rawResponseContent" 
+                                        style="max-height: 300px; overflow-y: auto; font-size: 0.8rem;">
+                                        No raw response available
+                                    </pre>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -186,6 +233,9 @@
             const fieldsContainer = document.getElementById('fieldsContainer');
             const previewContainer = document.getElementById('previewContainer');
             const resultsContainer = document.getElementById('resultsContainer');
+            const debugSection = document.getElementById('debugSection');
+            const extractedTextContent = document.getElementById('extractedTextContent');
+            const rawResponseContent = document.getElementById('rawResponseContent');
             
             // Field presets for different document types
             const fieldPresets = {
@@ -202,13 +252,16 @@
                     { name: 'application_number', value: 'APP123456' },
                     { name: 'date', value: '15/06/2023' },
                     { name: 'property_details', value: 'Flat No. 101, Building A, Green Valley, Mumbai' },
-                    { name: 'loan_amount', value: 'Rs. 50,00,000' } // Changed from 'value' to 'loan_amount'
+                    { name: 'loan_amount', value: 'Rs. 50,00,000' }
                 ],
                 'KYC': [
                     { name: 'name', value: 'Jane Smith' },
                     { name: 'address', value: '123 Main St, Bangalore, Karnataka' },
                     { name: 'id_number', value: 'ABCDE1234F' },
-                    { name: 'date_of_birth', value: '10/05/1985' }
+                    { name: 'date_of_birth', value: '10/05/1985' },
+                    { name: 'gender', value: 'Female' },
+                    { name: 'mobile_number', value: '9876543210' },
+                    { name: 'email', value: 'jane.smith@example.com' }
                 ]
             };
             
@@ -288,8 +341,8 @@
                     }
                 }
             });
-                        
-            // Update the form submission handler in test_document.html
+            
+            // Form submission handler
             documentForm.addEventListener('submit', function(e) {
                 e.preventDefault();
                 
@@ -309,21 +362,12 @@
                 const fieldRows = fieldsContainer.querySelectorAll('.field-row');
                 const formData = new FormData(documentForm);
                 
-                // Add extraction method
-                const extractionMethod = document.getElementById('extractionMethod').value;
-                formData.append('extraction_method', extractionMethod);
-                
                 fieldRows.forEach((row, index) => {
                     const nameInput = row.querySelector('input[name="field_name"]');
                     const valueInput = row.querySelector('input[name="field_value"]');
                     
                     if (nameInput.value) {
-                        // Map 'value' to 'loan_amount' for MODT documents
-                        let fieldName = nameInput.value;
-                        if (documentType.value === 'MODT' && fieldName === 'value') {
-                            fieldName = 'loan_amount';
-                        }
-                        formData.append(`field_${fieldName}`, valueInput.value || '');
+                        formData.append(`field_${nameInput.value}`, valueInput.value || '');
                     }
                 });
                 
@@ -331,9 +375,12 @@
                 resultsContainer.innerHTML = `
                     <div class="text-center">
                         <div class="spinner-border" role="status"></div>
-                        <p class="mt-2">Processing document with ${extractionMethod} extraction method...</p>
+                        <p class="mt-2">Processing document...</p>
                     </div>
                 `;
+                
+                // Hide debug section while loading
+                debugSection.style.display = 'none';
                 
                 // Send request to API
                 fetch('/api/test-document', {
@@ -347,24 +394,42 @@
                     return response.json();
                 })
                 .then(data => {
-                    console.log("API Response:", data);  // Log the response for debugging
+                    // Store raw response for debugging
+                    rawResponseContent.textContent = JSON.stringify(data, null, 2);
                     
-                    // Fix any 'value' fields in the response for MODT documents
-                    if (data.document_type === 'MODT') {
-                        // If 'value' exists in expected_fields, rename it to 'loan_amount'
-                        if (data.expected_fields && data.expected_fields.value) {
-                            data.expected_fields.loan_amount = data.expected_fields.value;
-                            delete data.expected_fields.value;
-                        }
-                        
-                        // If 'value' exists in comparison, rename it to 'loan_amount'
-                        if (data.comparison && data.comparison.value) {
-                            data.comparison.loan_amount = data.comparison.value;
-                            delete data.comparison.value;
-                        }
-                    }
-                    
+                    // Display results
                     displayResults(data);
+                    
+                    // Get extracted text
+                    if (data.document_path) {
+                        fetch(`/api/extracted-text/${data.document_path}`)
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error('Could not fetch extracted text');
+                                }
+                                return response.json();
+                            })
+                            .then(textData => {
+                                // Show extracted text in debug section
+                                let textContent = '';
+                                if (textData.doctr) {
+                                    textContent += "=== DocTR OCR ===\n\n" + textData.doctr + "\n\n";
+                                }
+                                if (textData.pytesseract) {
+                                    textContent += "=== Pytesseract OCR ===\n\n" + textData.pytesseract;
+                                }
+                                
+                                extractedTextContent.textContent = textContent || 'No extracted text available';
+                                
+                                // Show debug section
+                                debugSection.style.display = 'block';
+                            })
+                            .catch(error => {
+                                console.error('Error fetching extracted text:', error);
+                                extractedTextContent.textContent = 'Error fetching extracted text: ' + error.message;
+                                debugSection.style.display = 'block';
+                            });
+                    }
                 })
                 .catch(error => {
                     resultsContainer.innerHTML = `
@@ -373,11 +438,12 @@
                             <p>${error.message}</p>
                         </div>
                     `;
+                    debugSection.style.display = 'none';
                 });
             });
-
-                        
+            
             // Display processing results
+// Display processing results
             function displayResults(result) {
                 if (!result) {
                     resultsContainer.innerHTML = '<div class="alert alert-info">No results returned</div>';
@@ -400,54 +466,64 @@
                         <h5>Document Processed Successfully</h5>
                         <p><strong>Document Type:</strong> ${result.document_type}</p>
                         <p><strong>OCR Engine:</strong> ${result.ocr_engine}</p>
-                        <p><strong>Extraction Method:</strong> ${result.extraction_method}</p>
                         <p><strong>Processing Time:</strong> ${result.processing_time.toFixed(2)} seconds</p>
                     </div>
-                    <div class="alert alert-info">
-                        <h5>Extraction Method: ${result.extraction_method}</h5>
-                        <p>The fields below were extracted using the ${result.extraction_method} method.</p>
-                    </div>
+                `;
+                
+                // Add extracted fields section
+                html += `
                     <div class="card mb-3">
                         <div class="card-header">
                             <h5>Extracted Fields</h5>
                         </div>
                         <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-bordered table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th>Field</th>
-                                            <th>Extracted Value</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
                 `;
-                            
+                
                 // Add extracted fields
                 if (Object.keys(result.extracted_fields).length > 0) {
+                    html += `<div class="table-responsive">
+                        <table class="table table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <th style="width: 30%">Field</th>
+                                    <th style="width: 70%">Extracted Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>`;
+                    
                     for (const [fieldName, fieldValue] of Object.entries(result.extracted_fields)) {
-                        html += `
-                            <tr>
-                                <td><strong>${fieldName}</strong></td>
-                                <td>${fieldValue || '<em>Not found</em>'}</td>
-                            </tr>
-                        `;
+                        // Handle special case for id_numbers array
+                        if (fieldName === 'id_numbers' && Array.isArray(fieldValue)) {
+                            const idNumbersStr = fieldValue.map(id => 
+                                `${id.type}: ${id.number}`
+                            ).join('<br>');
+                            
+                            html += `
+                                <tr>
+                                    <td><strong>${fieldName}</strong></td>
+                                    <td>${idNumbersStr || '<em>Not found</em>'}</td>
+                                </tr>
+                            `;
+                        } else {
+                            html += `
+                                <tr>
+                                    <td><strong>${fieldName}</strong></td>
+                                    <td>${fieldValue || '<em>Not found</em>'}</td>
+                                </tr>
+                            `;
+                        }
                     }
+                    
+                    html += `</tbody></table></div>`;
                 } else {
                     html += `
-                        <tr>
-                            <td colspan="2" class="text-center">No fields extracted</td>
-                        </tr>
+                        <div class="alert alert-warning">
+                            No fields extracted
+                        </div>
                     `;
                 }
                 
-                html += `
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                `;
+                html += `</div></div>`;
                 
                 // Add comparison results if available
                 if (Object.keys(result.comparison).length > 0) {
@@ -461,10 +537,10 @@
                                     <table class="table table-bordered table-hover comparison-table">
                                         <thead>
                                             <tr>
-                                                <th>Field</th>
-                                                <th>Expected</th>
-                                                <th>Extracted</th>
-                                                <th>Match</th>
+                                                <th style="width: 20%">Field</th>
+                                                <th style="width: 30%">Expected</th>
+                                                <th style="width: 30%">Extracted</th>
+                                                <th style="width: 20%">Match</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -479,6 +555,8 @@
                         const iconClass = comparison.match ? 'success' : 'failure';
                         const iconType = comparison.match ? 'check-circle' : 'times-circle';
                         const similarityPercent = (comparison.similarity * 100).toFixed(1);
+                        const matchMethod = comparison.match_method || 'semantic';
+                        const matchedField = comparison.matched_field ? ` (matched with "${comparison.matched_field}")` : '';
                         
                         if (comparison.match) {
                             matchCount++;
@@ -486,7 +564,7 @@
                         
                         html += `
                             <tr class="${matchClass}">
-                                <td><strong>${fieldName}</strong></td>
+                                <td><strong>${fieldName}</strong>${matchedField}</td>
                                 <td>${comparison.expected || 'N/A'}</td>
                                 <td>${comparison.extracted || 'Not found'}</td>
                                 <td>
@@ -498,7 +576,10 @@
                                                 aria-valuenow="${similarityPercent}" aria-valuemin="0" aria-valuemax="100">
                                             </div>
                                         </div>
-                                        <span class="ms-2 badge ${comparison.match ? 'bg-success' : 'bg-danger'}">${similarityPercent}%</span>
+                                        <span class="ms-2 badge ${comparison.match ? 'bg-success' : 'bg-danger'}" 
+                                            title="Match method: ${matchMethod}">
+                                            ${similarityPercent}%
+                                        </span>
                                     </div>
                                 </td>
                             </tr>
@@ -539,8 +620,8 @@
                                 <table class="table table-bordered table-hover">
                                     <thead>
                                         <tr>
-                                            <th>Property</th>
-                                            <th>Value</th>
+                                            <th style="width: 30%">Property</th>
+                                            <th style="width: 70%">Value</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -576,6 +657,7 @@
                 
                 resultsContainer.innerHTML = html;
             }
+
             
             // Format metadata key for display
             function formatMetadataKey(key) {

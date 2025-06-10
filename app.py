@@ -6,7 +6,7 @@ import logging
 import traceback
 import document_processor
 import config
-from werkzeug.utils import secure_filename  # Add this import
+from werkzeug.utils import secure_filename
 
 # Configure logging
 logging.basicConfig(
@@ -26,7 +26,6 @@ CORS(app)
 def index():
     return render_template('index.html')
 
-
 @app.route('/api/process', methods=['POST'])
 def process_documents():
     try:
@@ -42,7 +41,6 @@ def process_documents():
             doc_type = doc_info.get('type')
             doc_location = doc_info.get('location')
             expected_fields = doc_info.get('fields', {})
-            extraction_method = doc_info.get('extraction_method', config.DEFAULT_EXTRACTION_METHOD)
             
             if not doc_type or not doc_location:
                 logger.warning(f"Missing document type or location: {doc_info}")
@@ -56,11 +54,7 @@ def process_documents():
             doc_filename = os.path.basename(doc_location)
             # Construct full path to document
             doc_path = os.path.join(config.DOCUMENTS_FOLDER, doc_filename)
-            logger.info(f"Processing document: {doc_path} of type {doc_type} with method {extraction_method}")
-            
-            # Override extraction method if specified in the request
-            if extraction_method and doc_type in config.DOCUMENT_TYPES:
-                config.DOCUMENT_TYPES[doc_type]['extraction_method'] = extraction_method
+            logger.info(f"Processing document: {doc_path} of type {doc_type}")
             
             # Process document with expected fields
             processing_result = document_processor.process_document(doc_path, doc_type, expected_fields)
@@ -91,7 +85,6 @@ def process_documents():
                 "comparison": comparison_result,
                 "metadata": processing_result['metadata'],
                 "ocr_engine": processing_result.get('ocr_engine'),
-                "extraction_method": processing_result.get('extraction_method', extraction_method),
                 "processing_time": processing_result.get('processing_time')
             })
         
@@ -151,6 +144,17 @@ def get_extracted_text(filename):
         # Check for both OCR engine outputs
         doctr_file = os.path.join(document_processor.EXTRACTED_TEXT_DIR, f"{base_name}_doctr.txt")
         pytesseract_file = os.path.join(document_processor.EXTRACTED_TEXT_DIR, f"{base_name}_pytesseract.txt")
+        
+        # Also check in the temp directory
+        if not os.path.exists(doctr_file):
+            temp_doctr_file = os.path.join(document_processor.EXTRACTED_TEXT_DIR, f"temp_{base_name}_doctr.txt")
+            if os.path.exists(temp_doctr_file):
+                doctr_file = temp_doctr_file
+        
+        if not os.path.exists(pytesseract_file):
+            temp_pytesseract_file = os.path.join(document_processor.EXTRACTED_TEXT_DIR, f"temp_{base_name}_pytesseract.txt")
+            if os.path.exists(temp_pytesseract_file):
+                pytesseract_file = temp_pytesseract_file
         
         result = {}
         
@@ -230,6 +234,7 @@ def get_document_modules():
     except Exception as e:
         logger.error(f"Error retrieving document modules: {str(e)}")
         return jsonify({"error": str(e)}), 500
+
 @app.route('/test-document', methods=['GET'])
 def test_document_page():
     """Render the test document page"""
@@ -247,14 +252,10 @@ def test_document():
         if file.filename == '':
             return jsonify({"error": "No file selected"}), 400
         
-        # Get document type and extraction method
+        # Get document type
         doc_type = request.form.get('document_type')
-        extraction_method = request.form.get('extraction_method', config.DEFAULT_EXTRACTION_METHOD).lower()
-        
         if not doc_type:
             return jsonify({"error": "Document type is required"}), 400
-        
-        logger.info(f"Processing document with type {doc_type} and extraction method {extraction_method}")
         
         # Get expected fields from form
         expected_fields = {}
@@ -272,28 +273,8 @@ def test_document():
         file_path = os.path.join(temp_dir, filename)
         file.save(file_path)
         
-        # Create a temporary config for this document processing
-        if doc_type in config.DOCUMENT_TYPES:
-            # Make a deep copy of the config to avoid modifying the global config
-            import copy
-            temp_config = copy.deepcopy(config.DOCUMENT_TYPES[doc_type])
-            temp_config['extraction_method'] = extraction_method
-            
-            # Temporarily override the config
-            original_config = config.DOCUMENT_TYPES[doc_type]
-            config.DOCUMENT_TYPES[doc_type] = temp_config
-            
-            logger.info(f"Temporarily overriding extraction method for {doc_type} to {extraction_method}")
-            
-            try:
-                # Process the document with the temporary config
-                processing_result = document_processor.process_document(file_path, doc_type, expected_fields)
-            finally:
-                # Restore the original config
-                config.DOCUMENT_TYPES[doc_type] = original_config
-        else:
-            # Process the document with default settings
-            processing_result = document_processor.process_document(file_path, doc_type, expected_fields)
+        # Process the document
+        processing_result = document_processor.process_document(file_path, doc_type, expected_fields)
         
         # Compare expected fields with extracted fields if provided
         comparison_result = {}
@@ -309,7 +290,6 @@ def test_document():
             "comparison": comparison_result,
             "metadata": processing_result['metadata'],
             "ocr_engine": processing_result.get('ocr_engine'),
-            "extraction_method": extraction_method,
             "processing_time": processing_result.get('processing_time')
         })
     

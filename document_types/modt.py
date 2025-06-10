@@ -12,8 +12,8 @@ def ensure_dir(directory):
     """Ensure directory exists"""
     os.makedirs(directory, exist_ok=True)
 
-def extract_fields(text):
-    """Extract fields from MODT (Memorandum of Deposit of Title Deeds) document"""
+def extract_fields_regex(text):
+    """Extract fields from MODT document using regex patterns"""
     fields = {}
     
     # Extract name with improved regex
@@ -99,13 +99,8 @@ def extract_fields(text):
     
     return fields
 
-def extract_fields_with_llm(text, required_fields):
-    """Extract fields from MODT document using LLM
-    
-    Args:
-        text: Extracted text from document
-        required_fields: Dictionary of fields to extract (from API payload)
-    """
+def extract_fields_llm(text, required_fields):
+    """Extract fields from MODT document using LLM"""
     try:
         from utils import ollama
         import logging
@@ -132,11 +127,12 @@ def extract_fields_with_llm(text, required_fields):
             model_name="gemma3:12b-it-qat",  # Or whatever model you're using
             step_name="Extract MODT fields"
         )
-        print("THE LLM", response)
+        logger.info(f"LLM response: {response}")
+        
         # Check if response is None (API call failed)
         if response is None:
             logger.warning("Ollama API call returned None. Falling back to regex extraction.")
-            return extract_fields(text)
+            return {}
         
         # Parse the JSON response
         import json
@@ -186,10 +182,34 @@ def extract_fields_with_llm(text, required_fields):
         return cleaned_fields
     
     except Exception as e:
-        import logging
-        logging.getLogger(__name__).error(f"Error using LLM for field extraction: {str(e)}")
-        # Fall back to regex extraction
-        return extract_fields(text)
+        logger.error(f"Error using LLM for field extraction: {str(e)}")
+        return {}
+
+def extract_fields(text, expected_fields=None):
+    """Main extraction function that combines regex and LLM approaches"""
+    logger.info("Extracting fields from MODT document")
+    
+    # First, extract fields using regex
+    regex_fields = extract_fields_regex(text)
+    logger.info(f"Regex extracted fields: {regex_fields}")
+    
+    # Then try to extract using LLM if expected fields are provided
+    llm_fields = {}
+    try:
+        if expected_fields:
+            llm_fields = extract_fields_llm(text, expected_fields)
+            logger.info(f"LLM extracted fields: {llm_fields}")
+    except Exception as e:
+        logger.error(f"Error in LLM extraction: {str(e)}")
+    
+    # Combine results, prioritizing LLM for non-empty values
+    final_fields = regex_fields.copy()
+    for field, value in llm_fields.items():
+        if value:  # Only update if LLM found a value
+            final_fields[field] = value
+    
+    logger.info(f"Final extracted fields: {final_fields}")
+    return final_fields
 
 def create_single_doc_extraction_prompt(filename, doc_text_content, doc_plain_tables, required_fields):
     """Create a prompt for LLM to extract fields from a document
